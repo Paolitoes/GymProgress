@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 rm = 10
 rf = 7
 
-Sf = 3000
+Sf = 200
 m_max = 220
 
 cm = 1700
@@ -38,18 +38,38 @@ def M_limit(F):
 
 F_limit = np.linspace(0,int(Sf/rf),20)
 
-#Cords 
-a = np.linspace(0,1,20)
-m = np.linspace(0,m_max,30)
-f = np.linspace(0,int(Sf/rf),20)
+#Derivative
+def VF(u,v,w):
+    return [da(u,v),dm(u,v,w),df(u,v,w)]
 
-A,M,F = np.meshgrid(a,m,f)
+#Orbit Integration
+def streamline(start_point, vector_field, dt = 0.1, steps = 3000):
+    path = [start_point]
+    current_point = np.array(start_point)
+    for _ in range(steps):
+        u, v, w = vector_field(*current_point)
+        direction = np.array([u,v,w])
+        current_point = current_point+direction*dt
+        path.append(current_point)
+    return np.array(path)
 
+#Seed Points
+M = M_limit(F_limit)
 
+a = np.linspace(0,1,10)
+m = np.linspace(0,np.max(M),10)
+f = np.linspace(0,int(Sf/rf),10)
+seed_points = np.stack((a,m,f),axis=-1)
 
 #Plotting
 ax = plt.figure().add_subplot(projection='3d')
+
 ax.plot(F_limit,M_limit(F_limit),zs=0,zdir='z')
+
+for point in seed_points:
+    orbit = streamline(point,VF)
+    ax.plot3D(orbit[:,0],orbit[:,1],orbit[:,2])
+
 plt.show()
 
 
